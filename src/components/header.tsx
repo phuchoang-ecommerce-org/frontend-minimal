@@ -4,12 +4,10 @@ import { usePathname, useRouter } from "next/navigation";
 import { Badge, Button, Input } from "antd";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Account, Cart } from "@/lib/types";
-import { useState } from "react";
 export function Header() {
   const router = useRouter();
   const path = usePathname();
   const cache = useQueryClient();
-  const [search, setSearch] = useState("");
   const { data: account } = useQuery<Account | null>({
     queryKey: ["session"],
     queryFn: async () =>
@@ -38,23 +36,15 @@ export function Header() {
         <Link className="text-2xl font-black tracking-tight text-forest" href="/">
           Market
         </Link>
-        <form
-          className="order-last w-full sm:order-none sm:min-w-48 sm:max-w-md sm:flex-1"
-          onSubmit={(e) => {
-            e.preventDefault();
-            router.push(`/products?q=${encodeURIComponent(search)}`);
-          }}
-        >
+        <div className="order-last w-full sm:order-none sm:min-w-48 sm:max-w-md sm:flex-1">
           <Input.Search
             aria-label="Search products"
             placeholder="Search products"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            onSearch={() =>
-              router.push(`/products?q=${encodeURIComponent(search)}`)
+            onSearch={(value) =>
+              router.push(`/products?q=${encodeURIComponent(value)}`)
             }
           />
-        </form>
+        </div>
         <Link className="text-sm font-semibold hover:text-forest hover:underline" href="/products">Products</Link>
         {(account === null || account?.role === "MEMBER") && (
           <Link className="text-sm font-semibold hover:text-forest hover:underline" href="/cart">
