@@ -4,8 +4,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import type { Account, MergeRejection } from "@/lib/types";
-type DevRole = "MEMBER" | "SELLER" | "ADMIN";
-export function LoginForm({ devRoles = [] }: { devRoles?: readonly DevRole[] }) {
+type DevAccount = { role: "MEMBER" | "SELLER" | "ADMIN"; login: string; password: string };
+export function LoginForm({ devAccounts = [] }: { devAccounts?: readonly DevAccount[] }) {
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -42,8 +42,6 @@ export function LoginForm({ devRoles = [] }: { devRoles?: readonly DevRole[] }) 
         throw new Error(
           result.code === "INVALID_CREDENTIALS"
             ? "Login or password is incorrect."
-            : result.code === "DEV_ACCOUNT_NOT_CONFIGURED"
-              ? "Set the development account login and password in the frontend environment."
             : "Could not log in.",
         );
       finishLogin(result);
@@ -57,12 +55,21 @@ export function LoginForm({ devRoles = [] }: { devRoles?: readonly DevRole[] }) 
     e.preventDefault();
     await authenticate("/api/login", { login, password });
   }
+  async function loginAs(account: DevAccount) {
+    setLogin(account.login);
+    setPassword(account.password);
+    if (!account.login || !account.password) {
+      setError("Set the development account login and password in the frontend environment.");
+      return;
+    }
+    await authenticate("/api/login", { login: account.login, password: account.password });
+  }
   return (
     <div className="grid gap-5">
-    {devRoles.length > 0 && <section className="rounded-2xl border border-clay bg-[#fff4e9] p-5 sm:p-6" aria-labelledby="dev-accounts-heading">
+    {devAccounts.length > 0 && <section className="rounded-2xl border border-clay bg-[#fff4e9] p-5 sm:p-6" aria-labelledby="dev-accounts-heading">
       <h2 id="dev-accounts-heading" className="text-xl font-semibold text-forest">Development accounts</h2>
-      <p className="mt-1 text-sm text-sage">Choose a seeded account to sign in locally.</p>
-      <div className="mt-4 flex flex-wrap gap-2">{devRoles.map((role) => <Button key={role} className="min-h-11" disabled={busy} onClick={() => authenticate("/api/dev-login", { role })}>Log in as {role.charAt(0) + role.slice(1).toLowerCase()}</Button>)}</div>
+      <p className="mt-1 text-sm text-sage">Choose a seeded account to fill the form and sign in locally.</p>
+      <div className="mt-4 flex flex-wrap gap-2">{devAccounts.map((account) => <Button key={account.role} htmlType="button" className="min-h-11" disabled={busy} onClick={() => void loginAs(account)}>Log in as {account.role.charAt(0) + account.role.slice(1).toLowerCase()}</Button>)}</div>
     </section>}
     <form className="grid gap-5 rounded-2xl border border-line bg-paper p-6 shadow-sm sm:p-8" onSubmit={submit}>
       <label className="grid gap-2 text-sm font-semibold">

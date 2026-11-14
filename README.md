@@ -4,10 +4,6 @@
 
 A web storefront for the marketplace API. It supports public product discovery, Guest and Member carts, COD checkout, Member order history and cancellation, and Seller cash recording.
 
-## What is it built from?
-
-This app consumes the Java/Spring Boot backend in `../backend` through the approved OpenAPI contract in `../docs-minimal/SolutionArchitecture/api-contract/openapi.yaml`. Next.js handles browser pages, server-side API calls, and same-origin routes. Product, cart, identity, stock, and authorization rules remain in the backend.
-
 ## What is it used for?
 
 Guests can browse products, select available variants, and build a cart. Members can sign in, merge their Guest cart, select an owned address, place COD orders, inspect status, and cancel fully unpaid orders. Sellers can view owned portions and record COD cash.
@@ -27,30 +23,18 @@ From this directory:
 
 ```sh
 pnpm install --frozen-lockfile
-export APP_PROFILE=dev
-export API_BASE_URL=http://localhost:8080
-export SESSION_SECRET="replace-with-a-random-secret-of-at-least-32-characters"
-pnpm dev
+cp .env.example .env.local
 ```
 
-Open <http://localhost:3000>. Keep `SESSION_SECRET` private and stable across server restarts; generate one with `openssl rand -hex 32`. The backend development profile allows `http://localhost:3000` as its cart Origin by default. If using a different frontend origin, set `CART_ALLOWED_ORIGINS` in the backend accordingly.
+Replace `SESSION_SECRET=CHANGE_ME` in `.env.local` with a value from `openssl rand -hex 32`, then run `pnpm dev` and open <http://localhost:3000>. Keep that secret private and stable across server restarts. The backend development profile allows `http://localhost:3000` as its cart Origin by default. If using a different frontend origin, set `CART_ALLOWED_ORIGINS` in the backend accordingly.
 
 ### One-click development accounts
 
-When `APP_PROFILE=dev`, the login page shows Member, Seller, and Admin buttons. To make them sign in, enable the backend's development fixtures and set these variables in the frontend's ignored `.env.local` file, using the plain passwords that match the BCrypt hashes configured for the backend seed:
+When `APP_PROFILE=dev`, the login page shows Member, Seller, and Admin buttons. To make them sign in, enable the backend's development fixtures. [`.env.example`](.env.example) contains the public local fixture credentials from the backend README.
 
-```text
-DEV_MEMBER_LOGIN=synthetic.member@example.test
-DEV_MEMBER_PASSWORD=<local Member fixture password>
-DEV_SELLER_LOGIN=synthetic.seller@example.test
-DEV_SELLER_PASSWORD=<local Seller fixture password>
-DEV_ADMIN_LOGIN=synthetic.admin@example.test
-DEV_ADMIN_PASSWORD=<local Admin fixture password>
-```
+Clicking a button fills the login and password fields, then submits them through the frontend's normal login route. The fixture credentials are visible in the browser in the dev profile. The backend [README](../backend/README.md#development-seed-accounts) defines these seeded credentials. Do not commit `.env.local`.
 
-The buttons send only a role to the same-origin frontend route. Credentials stay on the server and are sent to the backend's normal login endpoint. The route accepts requests only in the dev profile on localhost; production requests receive 404. The backend [README](../backend/README.md#development-seed-accounts) lists the seeded account names. Do not commit `.env.local`.
-
-For production, use `APP_PROFILE=prod`, an HTTPS backend URL, a deployment-injected `SESSION_SECRET`, and `pnpm build && pnpm start`. Deploy the frontend over HTTPS so the Secure session cookie works. The backend does not expose a quick-login endpoint; the frontend's local development action uses normal login with server-held fixture credentials.
+For production, use `APP_PROFILE=prod`, an HTTPS backend URL, a deployment-injected `SESSION_SECRET`, and `pnpm build && pnpm start`. Deploy the frontend over HTTPS so the Secure session cookie works. The backend does not expose a quick-login endpoint; the frontend's local development action uses normal login with the public fixture credentials.
 
 Verification commands:
 
