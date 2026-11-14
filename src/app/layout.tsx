@@ -13,12 +13,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
+      <body className="min-h-screen antialiased">
         <Providers>
           <Header />
           {children}
-          <footer className="site-footer">
-            Market · Cash on delivery marketplace
+          <footer className="border-t border-line bg-paper px-5 py-8 text-center text-sm text-sage">
+            Market · Independent finds, delivered with care
           </footer>
         </Providers>
       </body>

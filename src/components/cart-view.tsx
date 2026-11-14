@@ -69,9 +69,9 @@ export function CartView({ actor }: { actor: "GUEST" | "MEMBER" }) {
     }
   }
   return (
-    <div className="panel">
+    <div className="rounded-2xl border border-line bg-paper p-5 shadow-sm sm:p-8">
       {rejected.length > 0 && (
-        <div className="notice" role="status">
+        <div className="mb-5 rounded-xl border border-clay bg-[#fff4e9] p-4" role="status">
           <strong>Some Guest items could not be merged:</strong>
           <ul>
             {rejected.map((line) => (
@@ -94,12 +94,12 @@ export function CartView({ actor }: { actor: "GUEST" | "MEMBER" }) {
       ) : cart.lines.length ? (
         <>
           {cart.lines.map((line) => (
-            <div className="cart-line" key={line.variantId}>
-              <div>
-                <strong>Variant {line.variantId}</strong>
-                <p>${line.unitPriceUsd} each</p>
+            <div className="flex flex-col gap-4 border-b border-line py-5 sm:flex-row sm:items-center sm:justify-between" key={line.variantId}>
+              <div className="min-w-0">
+                <strong className="break-all">Variant {line.variantId}</strong>
+                <p className="mt-1 text-sm text-sage">${line.unitPriceUsd} each</p>
               </div>
-              <div>
+              <div className="flex flex-wrap items-center gap-3">
                 <label>
                   Quantity{" "}
                   <InputNumber
@@ -120,7 +120,7 @@ export function CartView({ actor }: { actor: "GUEST" | "MEMBER" }) {
               </div>
             </div>
           ))}
-          <h2>Total: ${cart.totalUsd}</h2>
+          <h2 className="mt-6 text-2xl font-semibold text-forest">Total: ${cart.totalUsd}</h2>
           {actor === "GUEST" ? (
             <p>
               <Link href="/login">Log in to continue to checkout</Link>
@@ -130,12 +130,12 @@ export function CartView({ actor }: { actor: "GUEST" | "MEMBER" }) {
           )}
         </>
       ) : (
-        <p>
-          Your cart is empty. <Link href="/products">Browse products</Link>
+        <p className="py-6 text-sage">
+          Your cart is empty. <Link className="font-semibold text-forest underline" href="/products">Browse products</Link>
         </p>
       )}
       {error && (
-        <p className="danger" role="alert">
+        <p className="mt-4 rounded-lg bg-[#fff0e9] p-3 text-[#9f3327]" role="alert">
           {error}
         </p>
       )}

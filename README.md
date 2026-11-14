@@ -15,7 +15,7 @@ Guests can browse products, select available variants, and build a cart. Members
 ## Tech stack
 
 - Next.js 16 App Router, React 19, TypeScript, pnpm
-- Ant Design for controls and TanStack Query v5 for in-memory interactive cart data
+- Tailwind CSS v4 for storefront styling, Ant Design for controls, and TanStack Query v5 for in-memory interactive cart data
 - `openapi-typescript` for generated contract types
 - Spring Boot API and PostgreSQL in the separate backend project
 

@@ -63,8 +63,8 @@ export function AddToCart({
     }
   }
   return (
-    <div className="form-stack">
-      <label>
+    <div className="grid gap-5">
+      <label className="grid gap-2 text-sm font-semibold">
         Variant{" "}
         <Select
           value={id}
@@ -75,7 +75,7 @@ export function AddToCart({
           }))}
         />
       </label>
-      <label>
+      <label className="grid gap-2 text-sm font-semibold">
         Quantity{" "}
         <InputNumber
           min={1}
@@ -87,10 +87,10 @@ export function AddToCart({
           onChange={(v) => setQuantity(v ?? 1)}
         />
       </label>
-      <Button type="primary" disabled={!id} loading={busy} onClick={add}>
+      <Button className="min-h-11" type="primary" disabled={!id} loading={busy} onClick={add}>
         Add to cart
       </Button>
-      {message && <p role="alert">{message}</p>}
+      {message && <p className="rounded-lg bg-[#fff0e9] p-3 text-[#9f3327]" role="alert">{message}</p>}
     </div>
   );
 }

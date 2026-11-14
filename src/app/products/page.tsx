@@ -27,19 +27,21 @@ export default async function Products({
   const next = new URLSearchParams(query);
   if (page?.nextCursor) next.set("cursor", page.nextCursor);
   return (
-    <main className="container">
-      <h1>Products</h1>
-      <form className="filters" action="/products">
-        <label>
+    <main className="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:px-10">
+      <div className="mb-8"><p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-forest">The collection</p><h1 className="text-4xl font-semibold tracking-tight">Products</h1></div>
+      <form className="mb-8 grid gap-4 rounded-2xl border border-line bg-paper p-5 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_auto] lg:items-end" action="/products">
+        <label className="grid gap-2 text-sm font-semibold">
           Search{" "}
           <input
+            className="min-h-11 rounded-lg border border-line bg-white px-3 text-base font-normal focus:border-forest"
             name="q"
             defaultValue={typeof params.q === "string" ? params.q : ""}
           />
         </label>
-        <label>
+        <label className="grid gap-2 text-sm font-semibold">
           Minimum USD{" "}
           <input
+            className="min-h-11 rounded-lg border border-line bg-white px-3 text-base font-normal focus:border-forest"
             name="minPrice"
             placeholder="0.00"
             defaultValue={
@@ -47,9 +49,10 @@ export default async function Products({
             }
           />
         </label>
-        <label>
+        <label className="grid gap-2 text-sm font-semibold">
           Maximum USD{" "}
           <input
+            className="min-h-11 rounded-lg border border-line bg-white px-3 text-base font-normal focus:border-forest"
             name="maxPrice"
             placeholder="100.00"
             defaultValue={
@@ -60,26 +63,26 @@ export default async function Products({
         {typeof params.categoryId === "string" && (
           <input type="hidden" name="categoryId" value={params.categoryId} />
         )}
-        <button type="submit">Apply filters</button>
+        <button className="min-h-11 rounded-lg bg-forest px-5 font-semibold text-white hover:bg-ink" type="submit">Apply filters</button>
       </form>
       {error && (
-        <p role="alert">
+        <p className="mb-5 rounded-xl border border-clay bg-[#fff4e9] p-4" role="alert">
           {error} <Link href="/products">Start again</Link>
         </p>
       )}
       {page &&
         (page.items.length ? (
-          <div className="product-grid">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {page.items.map((p) => (
               <ProductCard product={p} key={p.id} />
             ))}
           </div>
         ) : (
-          <p>No matching products.</p>
+          <p className="rounded-2xl border border-line bg-paper p-8 text-sage">No matching products.</p>
         ))}
       {page?.hasNext && (
-        <p>
-          <Link href={`/products?${next}`}>Next page</Link>
+        <p className="mt-8 text-center">
+          <Link className="inline-flex rounded-full border border-forest px-6 py-3 font-semibold text-forest hover:bg-forest hover:text-white" href={`/products?${next}`}>Next page</Link>
         </p>
       )}
     </main>

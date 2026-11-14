@@ -49,8 +49,8 @@ export function LoginForm() {
     }
   }
   return (
-    <form className="panel form-stack" onSubmit={submit}>
-      <label>
+    <form className="grid gap-5 rounded-2xl border border-line bg-paper p-6 shadow-sm sm:p-8" onSubmit={submit}>
+      <label className="grid gap-2 text-sm font-semibold">
         Login{" "}
         <Input
           autoComplete="username"
@@ -59,7 +59,7 @@ export function LoginForm() {
           required
         />
       </label>
-      <label>
+      <label className="grid gap-2 text-sm font-semibold">
         Password{" "}
         <Input.Password
           autoComplete="current-password"
@@ -68,11 +68,11 @@ export function LoginForm() {
           required
         />
       </label>
-      <Button type="primary" htmlType="submit" loading={busy}>
+      <Button className="min-h-11" type="primary" htmlType="submit" loading={busy}>
         Log in
       </Button>
       {error && (
-        <p className="danger" role="alert">
+        <p className="rounded-lg bg-[#fff0e9] p-3 text-[#9f3327]" role="alert">
           {error}
         </p>
       )}

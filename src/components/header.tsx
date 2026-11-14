@@ -33,13 +33,13 @@ export function Header() {
     router.refresh();
   }
   return (
-    <header className="site-header">
-      <nav className="header-inner" aria-label="Main navigation">
-        <Link className="brand" href="/">
+    <header className="border-b border-line bg-paper">
+      <nav className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-4 px-5 py-4 sm:px-8 lg:px-10" aria-label="Main navigation">
+        <Link className="text-2xl font-black tracking-tight text-forest" href="/">
           Market
         </Link>
         <form
-          className="header-search"
+          className="order-last w-full sm:order-none sm:min-w-48 sm:max-w-md sm:flex-1"
           onSubmit={(e) => {
             e.preventDefault();
             router.push(`/products?q=${encodeURIComponent(search)}`);
@@ -55,9 +55,9 @@ export function Header() {
             }
           />
         </form>
-        <Link href="/products">Products</Link>
+        <Link className="text-sm font-semibold hover:text-forest hover:underline" href="/products">Products</Link>
         {(account === null || account?.role === "MEMBER") && (
-          <Link href="/cart">
+          <Link className="text-sm font-semibold hover:text-forest hover:underline" href="/cart">
             <Badge
               count={
                 cart?.lines.reduce((sum, line) => sum + line.quantity, 0) ?? 0
@@ -69,7 +69,7 @@ export function Header() {
         )}
         {account ? (
           <>
-            <span>
+            <span className="text-sm text-sage">
               {account.displayName || account.login} ({account.role})
             </span>
             <Button type="text" onClick={logout}>
@@ -77,7 +77,7 @@ export function Header() {
             </Button>
           </>
         ) : (
-          path !== "/login" && <Link href="/login">Log in</Link>
+          path !== "/login" && <Link className="text-sm font-semibold hover:text-forest hover:underline" href="/login">Log in</Link>
         )}
       </nav>
     </header>
