@@ -2,7 +2,7 @@
 
 ## What is it?
 
-A web storefront for the marketplace API. Sprint 1 supports public product discovery, Guest cart edits, Member login, Guest-to-Member cart merge, and Member cart reads. Checkout and Seller order screens are planned for a later sprint.
+A web storefront for the marketplace API. It supports public product discovery, Guest and Member carts, COD checkout, Member order history and cancellation, and Seller cash recording.
 
 ## What is it built from?
 
@@ -10,7 +10,7 @@ This app consumes the Java/Spring Boot backend in `../backend` through the appro
 
 ## What is it used for?
 
-Guests can browse products, select available variants, and build a cart. Members can sign in and receive their Guest cart, see any rejected lines, and edit the resulting cart. Seller and Admin accounts can log in but have no Sprint 1 management screens.
+Guests can browse products, select available variants, and build a cart. Members can sign in, merge their Guest cart, select an owned address, place COD orders, inspect status, and cancel fully unpaid orders. Sellers can view owned portions and record COD cash.
 
 ## Tech stack
 
@@ -35,7 +35,22 @@ pnpm dev
 
 Open <http://localhost:3000>. Keep `SESSION_SECRET` private and stable across server restarts; generate one with `openssl rand -hex 32`. The backend development profile allows `http://localhost:3000` as its cart Origin by default. If using a different frontend origin, set `CART_ALLOWED_ORIGINS` in the backend accordingly.
 
-For production, use `APP_PROFILE=prod`, an HTTPS backend URL, a deployment-injected `SESSION_SECRET`, and `pnpm build && pnpm start`. Deploy the frontend over HTTPS so the Secure session cookie works. There is no development quick-login route because the current backend does not provide one.
+### One-click development accounts
+
+When `APP_PROFILE=dev`, the login page shows Member, Seller, and Admin buttons. To make them sign in, enable the backend's development fixtures and set these variables in the frontend's ignored `.env.local` file, using the plain passwords that match the BCrypt hashes configured for the backend seed:
+
+```text
+DEV_MEMBER_LOGIN=synthetic.member@example.test
+DEV_MEMBER_PASSWORD=<local Member fixture password>
+DEV_SELLER_LOGIN=synthetic.seller@example.test
+DEV_SELLER_PASSWORD=<local Seller fixture password>
+DEV_ADMIN_LOGIN=synthetic.admin@example.test
+DEV_ADMIN_PASSWORD=<local Admin fixture password>
+```
+
+The buttons send only a role to the same-origin frontend route. Credentials stay on the server and are sent to the backend's normal login endpoint. The route accepts requests only in the dev profile on localhost; production requests receive 404. The backend [README](../backend/README.md#development-seed-accounts) lists the seeded account names. Do not commit `.env.local`.
+
+For production, use `APP_PROFILE=prod`, an HTTPS backend URL, a deployment-injected `SESSION_SECRET`, and `pnpm build && pnpm start`. Deploy the frontend over HTTPS so the Secure session cookie works. The backend does not expose a quick-login endpoint; the frontend's local development action uses normal login with server-held fixture credentials.
 
 Verification commands:
 
@@ -51,4 +66,4 @@ Run `pnpm contract:generate` when the approved OpenAPI contract changes. The con
 
 ### Browser tests
 
-The Playwright suite expects the backend's disposable development fixture with one Member, Seller, and the synthetic Java Guide product. To test the two-Seller cart, seed a second synthetic Seller product into that **disposable test database only** using `tests/seed-second-seller.sql` (for example, pipe the file to `psql` in the test database container). Supply `TEST_MEMBER_LOGIN`, `TEST_SELLER_LOGIN`, and `TEST_MEMBER_PASSWORD` as local environment variables when running `pnpm test`; do not commit credentials. The browser binary can be installed with `pnpm exec playwright install chromium`.
+The Playwright suite expects a disposable backend development fixture with a Member, two Sellers, two synthetic products, and a Member-owned address. See [Sprint 2 browser run sheet](tests/sprint2-run-sheet.md). Supply `TEST_MEMBER_LOGIN`, `TEST_SELLER_LOGIN`, `TEST_SELLER_B_LOGIN`, and `TEST_MEMBER_PASSWORD` as local environment variables; do not commit credentials. The browser binary can be installed with `pnpm exec playwright install chromium`.

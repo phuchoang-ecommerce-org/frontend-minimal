@@ -4,6 +4,9 @@ export type MergeRejection = components["schemas"]["MergeRejection"];
 export type LoginResult = components["schemas"]["AuthTokens"];
 export type Product = components["schemas"]["Product"];
 export type Cart = components["schemas"]["Cart"];
+export type Address = components["schemas"]["Address"];
+export type Order = components["schemas"]["Order"];
+export type SellerOrder = components["schemas"]["SellerOrder"];
 export type Page<T> = {
   items: T[];
   nextCursor: string | null;

@@ -67,6 +67,8 @@ export function Header() {
             </Badge>
           </Link>
         )}
+        {account?.role === "MEMBER" && <Link className="text-sm font-semibold hover:text-forest hover:underline" href="/orders">Orders</Link>}
+        {account?.role === "SELLER" && <Link className="text-sm font-semibold hover:text-forest hover:underline" href="/seller/orders">Seller orders</Link>}
         {account ? (
           <>
             <span className="text-sm text-sage">

@@ -126,7 +126,7 @@ export function CartView({ actor }: { actor: "GUEST" | "MEMBER" }) {
               <Link href="/login">Log in to continue to checkout</Link>
             </p>
           ) : (
-            <p>Checkout is planned for Sprint 2.</p>
+            <p className="mt-5"><Link className="inline-flex min-h-11 items-center rounded-lg bg-forest px-5 font-semibold text-white" href="/checkout">Continue to checkout</Link></p>
           )}
         </>
       ) : (

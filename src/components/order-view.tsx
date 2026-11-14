@@ -1,0 +1,74 @@
+"use client";
+import Link from "next/link";
+import { Button } from "antd";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import type { Order, Page, SellerOrder } from "@/lib/types";
+
+async function getJson<T>(url: string): Promise<T> {
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) throw new Error(response.status === 401 ? "Session expired. Log in again." : response.status === 404 ? "Order not found." : "Could not load orders.");
+  return response.json();
+}
+function Status({ order }: { order: Order }) {
+  return <span className="font-semibold">{order.status === "CANCELLED" ? "Cancelled" : order.paymentStatus === "PAID" ? "Paid" : "Pending payment"}</span>;
+}
+export function OrderDetail({ id }: { id: string }) {
+  const cache = useQueryClient();
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  const query = useQuery<Order>({ queryKey: ["order", id], queryFn: () => getJson(`/api/orders/${encodeURIComponent(id)}`), retry: false });
+  const order = query.data;
+  async function cancel() {
+    setBusy(true); setMessage("");
+    try {
+      const response = await fetch(`/api/orders/${encodeURIComponent(id)}/cancellation`, { method: "POST" });
+      if (response.ok) { setMessage("Order cancelled."); await cache.invalidateQueries({ queryKey: ["order", id] }); }
+      else {
+        const result = await response.json().catch(() => ({})) as { code?: string };
+        setMessage(response.status === 409 ? "This order can no longer be cancelled. Its latest status is shown below." : response.status === 401 ? "Session expired. Log in again." : `${result.code ?? "Cancellation failed"}. Refresh and try again.`);
+        await query.refetch();
+      }
+    } catch { setMessage("Could not confirm cancellation. Refresh the order before trying again."); }
+    finally { setBusy(false); }
+  }
+  if (query.isLoading) return <p>Loading order…</p>;
+  if (query.isError || !order) return <p role="alert">{query.error?.message ?? "Order unavailable."} <Button onClick={() => query.refetch()}>Retry</Button></p>;
+  return <div className="grid gap-6 lg:grid-cols-[1fr_0.7fr]">
+    <section className="rounded-2xl border border-line bg-paper p-5 sm:p-8"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-sm text-sage">Order {order.id}</p><h2 className="mt-1 text-2xl font-semibold"><Status order={order} /></h2></div><Button onClick={() => query.refetch()}>Refresh status</Button></div>
+      <p className="mt-4">Total ${order.totalUsd} · Cash on delivery</p><p className="mt-1 text-sm text-sage">Placed {new Date(order.createdAt).toLocaleString()}</p>
+      <h3 className="mt-7 text-lg font-semibold">Seller portions</h3><ul className="mt-3 divide-y divide-line">{order.sellerOrders.map((part) => <li key={part.id} className="py-4"><p className="font-semibold">Seller {part.sellerId} · ${part.totalUsd}</p><p>{part.paymentStatus === "PAID" ? "Paid" : "Pending payment"}</p><ul className="mt-2 text-sm text-sage">{part.lines.map((line) => <li key={line.variantId}>{line.productName} · {line.quantity} × ${line.unitPriceUsd}</li>)}</ul></li>)}</ul>
+    </section>
+    <section className="h-fit rounded-2xl border border-line bg-paper p-5 sm:p-8"><h2 className="text-xl font-semibold">Delivery address</h2><p className="mt-3">{order.address.recipient}<br />{order.address.addressLine}<br />{order.address.locality}, {order.address.postalCode}<br />{order.address.country}</p>
+      {order.status === "PLACED" && order.sellerOrders.every((part) => part.paymentStatus === "PENDING_PAYMENT") && <Button danger className="mt-7 min-h-11" loading={busy} onClick={cancel}>Cancel unpaid order</Button>}
+      {order.status === "PLACED" && order.sellerOrders.some((part) => part.paymentStatus === "PAID") && <p className="mt-6 text-sm text-sage">This order cannot be cancelled because a Seller has recorded payment.</p>}
+      {message && <p role="status" className="mt-4 rounded-lg bg-[#fff4e9] p-3">{message}</p>}
+    </section>
+  </div>;
+}
+export function OrdersList() {
+  const [cursor, setCursor] = useState<string | null>(null);
+  const query = useQuery<Page<Order>>({ queryKey: ["orders", cursor], queryFn: () => getJson(`/api/orders?limit=20${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`), retry: false });
+  return <section className="rounded-2xl border border-line bg-paper p-5 sm:p-8">{query.isLoading ? <p>Loading orders…</p> : query.isError ? <p role="alert">Could not load orders. <Button onClick={() => query.refetch()}>Retry</Button></p> : !query.data?.items.length ? <p>No orders on this page.</p> : <ul className="divide-y divide-line">{query.data.items.map((order) => <li key={order.id} className="flex flex-wrap items-center justify-between gap-3 py-5"><div><p className="break-all text-sm text-sage">{order.id}</p><p><Status order={order} /> · ${order.totalUsd}</p></div><Link href={`/orders/${order.id}`} className="font-semibold text-forest underline">View order</Link></li>)}</ul>}
+    <div className="mt-5 flex gap-3">{cursor && <Button onClick={() => setCursor(null)}>First page</Button>}{query.data?.hasNext && query.data.nextCursor && <Button onClick={() => setCursor(query.data!.nextCursor)}>Next page</Button>}</div></section>;
+}
+export function SellerOrders() {
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [message, setMessage] = useState("");
+  const query = useQuery<Page<SellerOrder>>({ queryKey: ["seller-orders", cursor], queryFn: () => getJson(`/api/seller/orders?limit=20${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`), retry: false });
+  async function markPaid(id: string) {
+    setBusy(id); setMessage("");
+    try {
+      const response = await fetch(`/api/seller/orders/${id}/mark-paid`, { method: "POST" });
+      if (response.ok) setMessage("Cash receipt recorded.");
+      else setMessage(response.status === 409 ? "Payment state changed. Review the refreshed portion." : response.status === 404 ? "That portion is unavailable to this Seller." : "Could not record cash. Review the refreshed portion.");
+      await query.refetch();
+    } catch { setMessage("Could not confirm the result. Refresh before trying again."); }
+    finally { setBusy(null); }
+  }
+  return <section className="rounded-2xl border border-line bg-paper p-5 sm:p-8"><div className="flex justify-end"><Button onClick={() => query.refetch()}>Refresh orders</Button></div>{message && <p role="status" className="mt-4 rounded-lg bg-[#fff4e9] p-3">{message}</p>}
+    {query.isLoading ? <p>Loading Seller orders…</p> : query.isError ? <p role="alert">Could not load Seller orders. <Button onClick={() => query.refetch()}>Retry</Button></p> : !query.data?.items.length ? <p className="mt-5">No Seller orders on this page.</p> : <ul className="divide-y divide-line">{query.data.items.map((part) => <li key={part.id} className="py-5"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="break-all text-sm text-sage">Portion {part.id}</p><h2 className="mt-1 text-lg font-semibold">${part.totalUsd} · {part.status === "CANCELLED" ? "Cancelled" : part.paymentStatus === "PAID" ? "Paid" : "Pending payment"}</h2><p className="text-sm text-sage">Order {part.orderId}</p></div>{part.status === "PLACED" && part.paymentStatus === "PENDING_PAYMENT" && <Button type="primary" className="min-h-11" loading={busy === part.id} onClick={() => markPaid(part.id)}>Record COD cash</Button>}</div><ul className="mt-3 text-sm text-sage">{part.lines.map((line) => <li key={line.variantId}>{line.productName} · {line.quantity} × ${line.unitPriceUsd}</li>)}</ul></li>)}</ul>}
+    <div className="mt-5 flex gap-3">{cursor && <Button onClick={() => setCursor(null)}>First page</Button>}{query.data?.hasNext && query.data.nextCursor && <Button onClick={() => setCursor(query.data!.nextCursor)}>Next page</Button>}</div>
+  </section>;
+}
