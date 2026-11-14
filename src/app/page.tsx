@@ -1,69 +1,65 @@
-import Image from "next/image";
-import styles from "./page.module.css";
-
-export default function Home() {
+import Link from "next/link";
+import { api } from "@/lib/api";
+import type { Page, Product } from "@/lib/types";
+import { ProductCard } from "@/components/product-card";
+type Category = { id: string; name: string };
+export default async function Home() {
+  const [products, categories] = await Promise.allSettled([
+    api("/products?limit=8").then((r) => r.json() as Promise<Page<Product>>),
+    api("/categories?limit=8").then((r) => r.json() as Promise<Page<Category>>),
+  ]);
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>
-            To get started, edit the{" "}
-            <code className={styles.code}>page.tsx</code> file.
-          </h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="container">
+      <section className="hero">
+        <div>
+          <p className="eyebrow">Marketplace</p>
+          <h1>Find something worth bringing home.</h1>
+          <p>Browse products from independent sellers and build your cart.</p>
+          <Link className="primary-link" href="/products">
+            Browse products
+          </Link>
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+      <section>
+        <h2>Categories</h2>
+        {categories.status === "fulfilled" ? (
+          <div className="category-list">
+            {categories.value.items.length ? (
+              categories.value.items.map((category) => (
+                <Link
+                  key={category.id}
+                  href={`/products?categoryId=${category.id}`}
+                >
+                  {category.name}
+                </Link>
+              ))
+            ) : (
+              <p>No categories yet.</p>
+            )}
+          </div>
+        ) : (
+          <p>Categories are unavailable right now.</p>
+        )}
+      </section>
+      <section>
+        <div className="section-heading">
+          <h2>Explore products</h2>
+          <Link href="/products">View all</Link>
         </div>
-      </main>
-    </div>
+        {products.status === "fulfilled" ? (
+          products.value.items.length ? (
+            <div className="product-grid">
+              {products.value.items.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          ) : (
+            <p>No products are available yet.</p>
+          )
+        ) : (
+          <p>Products are unavailable right now. Refresh to retry.</p>
+        )}
+      </section>
+    </main>
   );
 }
