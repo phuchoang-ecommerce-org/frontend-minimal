@@ -119,12 +119,12 @@ export function CheckoutView({ memberId }: { memberId: string }) {
     }
   }
   return (
-    <div className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
+    <div className="grid gap-10 lg:grid-cols-[minmax(0,1.25fr)_minmax(19rem,.75fr)] lg:gap-16">
       <section
-        className="rounded-2xl border border-line bg-paper p-5 sm:p-8"
+        className="border-t border-line pt-6"
         aria-labelledby="address-heading"
       >
-        <h2 id="address-heading" className="text-2xl font-semibold">
+        <h2 id="address-heading" className="section-heading">
           Delivery address
         </h2>
         {addresses.isLoading ? (
@@ -137,12 +137,12 @@ export function CheckoutView({ memberId }: { memberId: string }) {
         ) : !addresses.data?.items.length ? (
           <p className="mt-5">No saved address is available for checkout.</p>
         ) : (
-          <fieldset className="mt-5 grid gap-3" disabled={!!pending || busy}>
+          <fieldset className="mt-5 divide-y divide-line border-y border-line" disabled={!!pending || busy}>
             <legend className="sr-only">Choose a delivery address</legend>
             {addresses.data.items.map((address) => (
               <label
                 key={address.id}
-                className={`flex cursor-pointer gap-4 rounded-xl border p-4 ${addressId === address.id ? "border-forest bg-[#edf4ed]" : "border-line"}`}
+                className={`flex min-h-20 cursor-pointer items-center gap-4 px-4 py-3 transition-colors hover:bg-[var(--surface-muted)] ${addressId === address.id ? "bg-[#e8efe8]" : ""}`}
               >
                 <input
                   type="radio"
@@ -152,7 +152,7 @@ export function CheckoutView({ memberId }: { memberId: string }) {
                   onChange={() => setAddressId(address.id)}
                 />
                 <span>
-                  <strong>{address.recipient}</strong>
+                  <strong className="font-semibold">{address.recipient}</strong>
                   <br />
                   {address.addressLine}, {address.locality},{" "}
                   {address.postalCode}, {address.country}
@@ -163,10 +163,10 @@ export function CheckoutView({ memberId }: { memberId: string }) {
         )}
       </section>
       <section
-        className="h-fit rounded-2xl border border-line bg-paper p-5 sm:p-8"
+        className="h-fit border-t border-line bg-[var(--surface-muted)] p-6 lg:sticky lg:top-28"
         aria-labelledby="review-heading"
       >
-        <h2 id="review-heading" className="text-2xl font-semibold">
+        <h2 id="review-heading" className="section-heading">
           Review order
         </h2>
         {cart.isLoading ? (
@@ -183,15 +183,15 @@ export function CheckoutView({ memberId }: { memberId: string }) {
               {cart.data?.lines.map((line) => (
                 <li
                   key={line.variantId}
-                  className="flex justify-between gap-3 py-3"
+                  className="flex justify-between gap-3 py-3 text-sm"
                 >
                   <span>{line.productName} · {line.variantLabel} × {line.quantity}</span>
-                  <span>${line.unitPriceUsd}</span>
+                  <span className="money">${line.unitPriceUsd}</span>
                 </li>
               ))}
             </ul>
-            <p className="mt-4 text-xl font-semibold">
-              Total ${cart.data?.totalUsd}
+            <p className="mt-4 flex justify-between border-t border-line pt-4 text-xl font-semibold">
+              <span>Total</span><span className="money">${cart.data?.totalUsd}</span>
             </p>
             {!cart.data?.lines.length && (
               <p className="mt-4">
@@ -209,7 +209,7 @@ export function CheckoutView({ memberId }: { memberId: string }) {
         </p>
         {pending && (
           <p
-            className="mt-4 rounded-lg border border-clay bg-[#fff4e9] p-3"
+            className="notice mt-4"
             role="status"
           >
             A checkout request may already have succeeded. Retry uses the same
@@ -218,7 +218,7 @@ export function CheckoutView({ memberId }: { memberId: string }) {
         )}
         {message && (
           <p
-            className="mt-4 rounded-lg bg-[#fff0e9] p-3 text-[#9f3327]"
+            className="notice-error mt-4"
             role="alert"
           >
             {message}
