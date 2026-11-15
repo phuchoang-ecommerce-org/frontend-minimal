@@ -55,33 +55,33 @@ export default async function Products({ searchParams }: {
   if (previousCursor && previousCursor !== "start") previous.set("cursor", previousCursor);
 
   return (
-    <main className="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:px-10">
-      <div className="mb-8"><p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-forest">The collection</p><h1 className="text-4xl font-semibold tracking-tight">Products</h1></div>
-      <div className="grid gap-8 lg:grid-cols-[15rem_minmax(0,1fr)]">
-        <aside className="self-start rounded-2xl border border-line bg-paper p-5" aria-label="Product filters">
-          <h2 className="mb-4 text-lg font-semibold">Filter products</h2>
+    <main className="page-shell py-10 sm:py-14">
+      <div className="mb-10"><p className="eyebrow mb-2">The collection</p><h1 className="page-heading">Products</h1></div>
+      <div className="grid gap-8 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-10">
+        <aside className="self-start border-t border-line pt-5" aria-label="Product filters">
+          <h2 className="mb-4 text-base font-semibold">Filter products</h2>
           {categories ? (
             <form action="/products" className="grid gap-4">
               {q && <input type="hidden" name="q" value={q} />}
               <label className="text-sm font-semibold" htmlFor="category-filter">Category</label>
-              <select id="category-filter" name="categoryId" defaultValue={categoryId} className="min-h-11 w-full rounded-lg border border-line bg-white px-3 text-base font-normal focus:border-forest">
+              <select id="category-filter" name="categoryId" defaultValue={categoryId} className="min-h-11 w-full rounded-md border border-line bg-paper px-3 text-base font-normal focus:border-forest">
                 <option value="">All categories</option>
                 {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
               </select>
-              <button className="min-h-11 rounded-lg bg-forest px-5 font-semibold text-white hover:bg-ink" type="submit">Apply filter</button>
+              <button className="button-secondary" type="submit">Apply filter</button>
             </form>
           ) : <p className="text-sm text-sage" role="status">Categories are unavailable. Refresh to try again.</p>}
         </aside>
         <section aria-label="Product results">
-          {error && <p className="mb-5 rounded-xl border border-clay bg-[#fff4e9] p-4" role="alert">{error} <Link className="underline" href={`/products?${base}`}>Start again</Link></p>}
+          {error && <p className="notice-error mb-5" role="alert">{error} <Link className="underline" href={`/products?${base}`}>Start again</Link></p>}
           {page && (page.items.length ? (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-9 sm:gap-x-6 xl:grid-cols-3">
               {page.items.map((product) => <ProductCard product={product} key={product.id} />)}
             </div>
-          ) : <p className="rounded-2xl border border-line bg-paper p-8 text-sage">No matching products.</p>)}
+          ) : <p className="border-t border-line py-8 text-sage">No matching products.</p>)}
           {page && (back.length > 0 || page.hasNext) && <nav aria-label="Product pages" className="mt-8 flex flex-wrap justify-center gap-3">
-            {back.length > 0 && <Link className="inline-flex min-h-11 items-center rounded-full border border-forest px-6 font-semibold text-forest hover:bg-forest hover:text-white" href={`/products?${previous}`}>Previous page</Link>}
-            {page.hasNext && page.nextCursor && <Link className="inline-flex min-h-11 items-center rounded-full border border-forest px-6 font-semibold text-forest hover:bg-forest hover:text-white" href={`/products?${next}`}>Next page</Link>}
+            {back.length > 0 && <Link className="button-secondary" href={`/products?${previous}`}>Previous page</Link>}
+            {page.hasNext && page.nextCursor && <Link className="button-secondary" href={`/products?${next}`}>Next page</Link>}
           </nav>}
         </section>
       </div>

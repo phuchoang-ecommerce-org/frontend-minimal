@@ -92,7 +92,7 @@ export function AddToCart({
       <Button className="min-h-11" type="primary" disabled={!id} loading={busy} onClick={add}>
         Add to cart
       </Button>
-      {message && <p className="rounded-lg bg-[#fff4e9] p-3 text-ink" role={added ? "status" : "alert"}>{message} {added && <Link className="font-semibold text-forest underline" href="/cart">View cart</Link>}</p>}
+      {message && <p className={added ? "notice" : "notice-error"} role={added ? "status" : "alert"}>{message} {added && <Link className="font-semibold text-forest underline" href="/cart">View cart</Link>}</p>}
     </div>
   );
 }
