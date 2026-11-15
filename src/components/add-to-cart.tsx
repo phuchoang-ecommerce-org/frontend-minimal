@@ -2,7 +2,7 @@
 import { Button, InputNumber, Select } from "antd";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import type { Cart } from "@/lib/types";
 export function AddToCart({
   variants,
@@ -19,12 +19,13 @@ export function AddToCart({
   const [quantity, setQuantity] = useState(1);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [added, setAdded] = useState(false);
   const cache = useQueryClient();
-  const router = useRouter();
   async function add() {
     if (!id) return;
     setBusy(true);
     setMessage("");
+    setAdded(false);
     try {
       let cart = cache.getQueryData<Cart>(["cart"]);
       if (!cart) {
@@ -54,8 +55,9 @@ export function AddToCart({
             : "Could not add to cart.",
         );
       }
-      await cache.invalidateQueries({ queryKey: ["cart"] });
-      router.push("/cart");
+      cache.setQueryData<Cart>(["cart"], data as Cart);
+      setMessage("Added to cart.");
+      setAdded(true);
     } catch (e) {
       setMessage(e instanceof Error ? e.message : "Could not add to cart.");
     } finally {
@@ -90,7 +92,7 @@ export function AddToCart({
       <Button className="min-h-11" type="primary" disabled={!id} loading={busy} onClick={add}>
         Add to cart
       </Button>
-      {message && <p className="rounded-lg bg-[#fff0e9] p-3 text-[#9f3327]" role="alert">{message}</p>}
+      {message && <p className="rounded-lg bg-[#fff4e9] p-3 text-ink" role={added ? "status" : "alert"}>{message} {added && <Link className="font-semibold text-forest underline" href="/cart">View cart</Link>}</p>}
     </div>
   );
 }
