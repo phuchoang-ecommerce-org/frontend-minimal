@@ -35,9 +35,9 @@ export function OrderDetail({ id }: { id: string }) {
   if (query.isLoading) return <p>Loading order…</p>;
   if (query.isError || !order) return <p role="alert">{query.error?.message ?? "Order unavailable."} <Button onClick={() => query.refetch()}>Retry</Button></p>;
   return <div className="grid gap-6 lg:grid-cols-[1fr_0.7fr]">
-    <section className="rounded-2xl border border-line bg-paper p-5 sm:p-8"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-sm text-sage">Order {order.id}</p><h2 className="mt-1 text-2xl font-semibold"><Status order={order} /></h2></div><Button onClick={() => query.refetch()}>Refresh status</Button></div>
+    <section className="rounded-2xl border border-line bg-paper p-5 sm:p-8"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-sm text-sage">Placed {new Date(order.createdAt).toLocaleString()}</p><h2 className="mt-1 text-2xl font-semibold"><Status order={order} /></h2></div><Button onClick={() => query.refetch()}>Refresh status</Button></div>
       <p className="mt-4">Total ${order.totalUsd} · Cash on delivery</p><p className="mt-1 text-sm text-sage">Placed {new Date(order.createdAt).toLocaleString()}</p>
-      <h3 className="mt-7 text-lg font-semibold">Seller portions</h3><ul className="mt-3 divide-y divide-line">{order.sellerOrders.map((part) => <li key={part.id} className="py-4"><p className="font-semibold">Seller {part.sellerId} · ${part.totalUsd}</p><p>{part.paymentStatus === "PAID" ? "Paid" : "Pending payment"}</p><ul className="mt-2 text-sm text-sage">{part.lines.map((line) => <li key={line.variantId}>{line.productName} · {line.quantity} × ${line.unitPriceUsd}</li>)}</ul></li>)}</ul>
+      <h3 className="mt-7 text-lg font-semibold">Seller portions</h3><ul className="mt-3 divide-y divide-line">{order.sellerOrders.map((part) => <li key={part.id} className="py-4"><p className="font-semibold">${part.totalUsd} · {part.paymentStatus === "PAID" ? "Paid" : "Pending payment"}</p><ul className="mt-2 text-sm text-sage">{part.lines.map((line) => <li key={line.variantId}>{line.productName} · {line.quantity} × ${line.unitPriceUsd}</li>)}</ul></li>)}</ul>
     </section>
     <section className="h-fit rounded-2xl border border-line bg-paper p-5 sm:p-8"><h2 className="text-xl font-semibold">Delivery address</h2><p className="mt-3">{order.address.recipient}<br />{order.address.addressLine}<br />{order.address.locality}, {order.address.postalCode}<br />{order.address.country}</p>
       {order.status === "PLACED" && order.sellerOrders.every((part) => part.paymentStatus === "PENDING_PAYMENT") && <Button danger className="mt-7 min-h-11" loading={busy} onClick={cancel}>Cancel unpaid order</Button>}
@@ -46,17 +46,31 @@ export function OrderDetail({ id }: { id: string }) {
     </section>
   </div>;
 }
-export function OrdersList() {
-  const [cursor, setCursor] = useState<string | null>(null);
+export function OrdersList({ cursor, back }: { cursor: string; back: string[] }) {
   const query = useQuery<Page<Order>>({ queryKey: ["orders", cursor], queryFn: () => getJson(`/api/orders?limit=20${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`), retry: false });
-  return <section className="rounded-2xl border border-line bg-paper p-5 sm:p-8">{query.isLoading ? <p>Loading orders…</p> : query.isError ? <p role="alert">Could not load orders. <Button onClick={() => query.refetch()}>Retry</Button></p> : !query.data?.items.length ? <p>No orders on this page.</p> : <ul className="divide-y divide-line">{query.data.items.map((order) => <li key={order.id} className="flex flex-wrap items-center justify-between gap-3 py-5"><div><p className="break-all text-sm text-sage">{order.id}</p><p><Status order={order} /> · ${order.totalUsd}</p></div><Link href={`/orders/${order.id}`} className="font-semibold text-forest underline">View order</Link></li>)}</ul>}
-    <div className="mt-5 flex gap-3">{cursor && <Button onClick={() => setCursor(null)}>First page</Button>}{query.data?.hasNext && query.data.nextCursor && <Button onClick={() => setCursor(query.data!.nextCursor)}>Next page</Button>}</div></section>;
+  const next = new URLSearchParams();
+  for (const prior of back) next.append("back", prior);
+  next.append("back", cursor || "start");
+  if (query.data?.nextCursor) next.set("cursor", query.data.nextCursor);
+  const previous = new URLSearchParams();
+  for (const prior of back.slice(0, -1)) previous.append("back", prior);
+  const previousCursor = back.at(-1);
+  if (previousCursor && previousCursor !== "start") previous.set("cursor", previousCursor);
+  return <section className="rounded-2xl border border-line bg-paper p-5 sm:p-8">{query.isLoading ? <p>Loading orders…</p> : query.isError ? <p role="alert">Could not load orders. {cursor ? <Link className="underline" href="/orders">Start again</Link> : <Button onClick={() => query.refetch()}>Retry</Button>}</p> : !query.data?.items.length ? <p>No orders on this page.</p> : <ul className="divide-y divide-line">{query.data.items.map((order) => <li key={order.id} className="flex flex-wrap items-center justify-between gap-3 py-5"><div><p className="text-sm text-sage">Placed {new Date(order.createdAt).toLocaleString()}</p><p><Status order={order} /> · ${order.totalUsd}</p></div><Link href={`/orders/${order.id}`} className="font-semibold text-forest underline">View order</Link></li>)}</ul>}
+    <nav aria-label="Order pages" className="mt-5 flex flex-wrap gap-3">{back.length > 0 && <Link className="inline-flex min-h-11 items-center rounded-lg border border-line px-4 font-semibold text-forest" href={`/orders?${previous}`}>Previous page</Link>}{query.data?.hasNext && query.data.nextCursor && <Link className="inline-flex min-h-11 items-center rounded-lg border border-line px-4 font-semibold text-forest" href={`/orders?${next}`}>Next page</Link>}</nav></section>;
 }
-export function SellerOrders() {
-  const [cursor, setCursor] = useState<string | null>(null);
+export function SellerOrders({ cursor, back }: { cursor: string; back: string[] }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const query = useQuery<Page<SellerOrder>>({ queryKey: ["seller-orders", cursor], queryFn: () => getJson(`/api/seller/orders?limit=20${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`), retry: false });
+  const next = new URLSearchParams();
+  for (const prior of back) next.append("back", prior);
+  next.append("back", cursor || "start");
+  if (query.data?.nextCursor) next.set("cursor", query.data.nextCursor);
+  const previous = new URLSearchParams();
+  for (const prior of back.slice(0, -1)) previous.append("back", prior);
+  const previousCursor = back.at(-1);
+  if (previousCursor && previousCursor !== "start") previous.set("cursor", previousCursor);
   async function markPaid(id: string) {
     setBusy(id); setMessage("");
     try {
@@ -68,7 +82,7 @@ export function SellerOrders() {
     finally { setBusy(null); }
   }
   return <section className="rounded-2xl border border-line bg-paper p-5 sm:p-8"><div className="flex justify-end"><Button onClick={() => query.refetch()}>Refresh orders</Button></div>{message && <p role="status" className="mt-4 rounded-lg bg-[#fff4e9] p-3">{message}</p>}
-    {query.isLoading ? <p>Loading Seller orders…</p> : query.isError ? <p role="alert">Could not load Seller orders. <Button onClick={() => query.refetch()}>Retry</Button></p> : !query.data?.items.length ? <p className="mt-5">No Seller orders on this page.</p> : <ul className="divide-y divide-line">{query.data.items.map((part) => <li key={part.id} className="py-5"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="break-all text-sm text-sage">Portion {part.id}</p><h2 className="mt-1 text-lg font-semibold">${part.totalUsd} · {part.status === "CANCELLED" ? "Cancelled" : part.paymentStatus === "PAID" ? "Paid" : "Pending payment"}</h2><p className="text-sm text-sage">Order {part.orderId}</p></div>{part.status === "PLACED" && part.paymentStatus === "PENDING_PAYMENT" && <Button type="primary" className="min-h-11" loading={busy === part.id} onClick={() => markPaid(part.id)}>Record COD cash</Button>}</div><ul className="mt-3 text-sm text-sage">{part.lines.map((line) => <li key={line.variantId}>{line.productName} · {line.quantity} × ${line.unitPriceUsd}</li>)}</ul></li>)}</ul>}
-    <div className="mt-5 flex gap-3">{cursor && <Button onClick={() => setCursor(null)}>First page</Button>}{query.data?.hasNext && query.data.nextCursor && <Button onClick={() => setCursor(query.data!.nextCursor)}>Next page</Button>}</div>
+    {query.isLoading ? <p>Loading Seller orders…</p> : query.isError ? <p role="alert">Could not load Seller orders. {cursor ? <Link className="underline" href="/seller/orders">Start again</Link> : <Button onClick={() => query.refetch()}>Retry</Button>}</p> : !query.data?.items.length ? <p className="mt-5">No Seller orders on this page.</p> : <ul className="divide-y divide-line">{query.data.items.map((part) => <li key={part.id} className="py-5"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-sm text-sage">Placed {new Date(part.createdAt).toLocaleString()}</p><h2 className="mt-1 text-lg font-semibold">${part.totalUsd} · {part.status === "CANCELLED" ? "Cancelled" : part.paymentStatus === "PAID" ? "Paid" : "Pending payment"}</h2></div>{part.status === "PLACED" && part.paymentStatus === "PENDING_PAYMENT" && <Button type="primary" className="min-h-11" loading={busy === part.id} onClick={() => markPaid(part.id)}>Record COD cash</Button>}</div><ul className="mt-3 text-sm text-sage">{part.lines.map((line) => <li key={line.variantId}>{line.productName} · {line.quantity} × ${line.unitPriceUsd}</li>)}</ul></li>)}</ul>}
+    <nav aria-label="Seller order pages" className="mt-5 flex flex-wrap gap-3">{back.length > 0 && <Link className="inline-flex min-h-11 items-center rounded-lg border border-line px-4 font-semibold text-forest" href={`/seller/orders?${previous}`}>Previous page</Link>}{query.data?.hasNext && query.data.nextCursor && <Link className="inline-flex min-h-11 items-center rounded-lg border border-line px-4 font-semibold text-forest" href={`/seller/orders?${next}`}>Next page</Link>}</nav>
   </section>;
 }
