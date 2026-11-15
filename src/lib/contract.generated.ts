@@ -844,6 +844,8 @@ export interface components {
         CartLine: {
             /** Format: uuid */
             variantId: string;
+            productName: string;
+            variantLabel: string;
             quantity: number;
             /** @example 12.50 */
             unitPriceUsd: string;
