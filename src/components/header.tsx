@@ -1,14 +1,22 @@
 "use client";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { Badge, Button, Input } from "antd";
+import { useRouter } from "next/navigation";
+import { Badge, Dropdown, Input } from "antd";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Account, Cart } from "@/lib/types";
+function CartIcon() {
+  return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6"><circle cx="9" cy="20" r="1" /><circle cx="19" cy="20" r="1" /><path d="M2 3h2l2.5 12h13l2-9H5" /></svg>;
+}
+function UserIcon() {
+  return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="9" r="3" /><path d="M5.5 19a7 7 0 0 1 13 0" /></svg>;
+}
+function ProductsIcon() {
+  return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6"><path d="M4 7h16v13H4zM2 7l2-4h16l2 4M9 7v13M4 11h5" /></svg>;
+}
 export function Header() {
   const router = useRouter();
-  const path = usePathname();
   const cache = useQueryClient();
-  const { data: account } = useQuery<Account | null>({
+  const { data: account, isPending: sessionPending } = useQuery<Account | null>({
     queryKey: ["session"],
     queryFn: async () =>
       (await (await fetch("/api/session", { cache: "no-store" })).json())
@@ -25,17 +33,27 @@ export function Header() {
     retry: false,
   });
   async function logout() {
-    await fetch("/api/logout", { method: "POST" });
+    const response = await fetch("/api/logout", { method: "POST" });
+    if (!response.ok) return;
     cache.clear();
-    router.push("/");
-    router.refresh();
+    window.location.replace(new URL("/", window.location.href).href);
   }
+  const accountItems = account
+    ? [
+        { key: "identity", label: account.displayName || account.login, disabled: true },
+        ...(account.role === "MEMBER" || account.role === "SELLER"
+          ? [{ key: "orders", label: <Link href={account.role === "SELLER" ? "/seller/orders" : "/orders"}>{account.role === "SELLER" ? "Seller orders" : "Orders"}</Link> }]
+          : []),
+        { key: "logout", label: "Log out", onClick: logout },
+      ]
+    : [{ key: "login", label: <Link href="/login">Log in</Link> }];
   return (
-    <header className="border-b border-line bg-paper">
-      <nav className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-4 px-5 py-4 sm:px-8 lg:px-10" aria-label="Main navigation">
+    <header className="sticky top-0 z-50 border-b border-line bg-paper">
+      <nav className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-3 px-5 py-3 sm:px-8 lg:px-10" aria-label="Main navigation">
         <Link className="text-2xl font-black tracking-tight text-forest" href="/">
           Market
         </Link>
+        <Link aria-label="Products" className="flex min-h-11 min-w-11 items-center justify-center rounded-full text-ink hover:bg-cream hover:text-forest" href="/products"><ProductsIcon /></Link>
         <div className="order-last w-full sm:order-none sm:min-w-48 sm:max-w-md sm:flex-1">
           <Input.Search
             aria-label="Search products"
@@ -45,32 +63,16 @@ export function Header() {
             }
           />
         </div>
-        <Link className="text-sm font-semibold hover:text-forest hover:underline" href="/products">Products</Link>
-        {(account === null || account?.role === "MEMBER") && (
-          <Link className="text-sm font-semibold hover:text-forest hover:underline" href="/cart">
-            <Badge
-              count={
-                cart?.lines.reduce((sum, line) => sum + line.quantity, 0) ?? 0
-              }
-            >
-              Cart
+        <div className="ml-auto flex items-center gap-2">
+          {(account === null || account?.role === "MEMBER") && (
+            <Badge count={cart?.lines.reduce((sum, line) => sum + line.quantity, 0) ?? 0}>
+              <Link aria-label="Cart" className="flex min-h-11 min-w-11 items-center justify-center rounded-full text-ink hover:bg-cream hover:text-forest" href="/cart"><CartIcon /></Link>
             </Badge>
-          </Link>
-        )}
-        {account?.role === "MEMBER" && <Link className="text-sm font-semibold hover:text-forest hover:underline" href="/orders">Orders</Link>}
-        {account?.role === "SELLER" && <Link className="text-sm font-semibold hover:text-forest hover:underline" href="/seller/orders">Seller orders</Link>}
-        {account ? (
-          <>
-            <span className="text-sm text-sage">
-              {account.displayName || account.login} ({account.role})
-            </span>
-            <Button type="text" onClick={logout}>
-              Log out
-            </Button>
-          </>
-        ) : (
-          path !== "/login" && <Link className="text-sm font-semibold hover:text-forest hover:underline" href="/login">Log in</Link>
-        )}
+          )}
+          <Dropdown menu={{ items: accountItems }} trigger={["click"]} placement="bottomRight" disabled={sessionPending}>
+            <button aria-label="Account menu" className="flex min-h-11 min-w-11 items-center justify-center rounded-full text-ink hover:bg-cream hover:text-forest" type="button"><UserIcon /></button>
+          </Dropdown>
+        </div>
       </nav>
     </header>
   );
