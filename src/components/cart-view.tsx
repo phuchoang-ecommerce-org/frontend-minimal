@@ -71,7 +71,7 @@ export function CartView({ actor }: { actor: "GUEST" | "MEMBER" }) {
   return (
     <div>
       {rejected.length > 0 && (
-        <div className="mb-5 rounded-xl border border-clay bg-[#fff4e9] p-4" role="status">
+        <div className="notice mb-5" role="status">
           <strong>Some Guest items could not be merged:</strong>
           <p>{rejected.length} item{rejected.length === 1 ? "" : "s"} could not be added. Review your cart and try adding them again if available.</p>
         </div>
@@ -83,45 +83,41 @@ export function CartView({ actor }: { actor: "GUEST" | "MEMBER" }) {
           Cart unavailable. <Button onClick={() => refetch()}>Retry</Button>
         </p>
       ) : cart.lines.length ? (
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
-          <section aria-label="Cart items" className="rounded-2xl border border-line bg-paper p-5 shadow-sm sm:p-8">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-16">
+          <section aria-label="Cart items" className="border-t border-line">
           {cart.lines.map((line) => (
-            <div className="flex flex-col gap-4 border-b border-line py-5 sm:flex-row sm:items-center sm:justify-between" key={line.variantId}>
+            <div className="grid gap-4 border-b border-line py-6 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center" key={line.variantId}>
               <div className="min-w-0">
-                <strong>{line.productName}</strong>
-                <p className="mt-1 text-sm text-sage">{line.variantLabel} · ${line.unitPriceUsd} each</p>
+                <strong className="font-semibold">{line.productName}</strong>
+                <p className="mt-1 text-sm text-sage">{line.variantLabel} · <span className="money">${line.unitPriceUsd}</span> each</p>
               </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <label>
-                  Quantity{" "}
+              <div className="flex flex-wrap items-center gap-4 sm:justify-end">
+                <label className="flex items-center gap-2 text-sm text-sage">
+                  Quantity
                   <InputNumber
                     min={1}
+                    aria-label={`Quantity for ${line.productName}`}
                     value={line.quantity}
                     disabled={busy === line.variantId}
                     onChange={(v) => {
                       if (v && v !== line.quantity) change(line.variantId, v);
                     }}
                   />
-                </label>{" "}
-                <Button
-                  disabled={busy === line.variantId}
-                  onClick={() => change(line.variantId, 0)}
-                >
-                  Remove
-                </Button>
+                </label>
               </div>
+              <Button type="text" danger disabled={busy === line.variantId} onClick={() => change(line.variantId, 0)}>Remove</Button>
             </div>
           ))}
           </section>
-          <aside aria-label="Cart summary" className="h-fit rounded-2xl border border-line bg-paper p-5 shadow-sm sm:p-8">
-          <h2 className="text-xl font-semibold">Order summary</h2>
-          <p className="mt-5 flex justify-between gap-3 border-t border-line pt-5 text-lg font-semibold text-forest"><span>Total</span><span>${cart.totalUsd}</span></p>
+          <aside aria-label="Cart summary" className="h-fit border-t border-line bg-[var(--surface-muted)] p-6 lg:sticky lg:top-28">
+          <h2 className="section-heading">Order summary</h2>
+          <p className="mt-5 flex justify-between gap-3 border-t border-line pt-5 text-lg font-semibold text-forest"><span>Total</span><span className="money">${cart.totalUsd}</span></p>
           {actor === "GUEST" ? (
             <p>
               <Link className="mt-5 inline-flex min-h-11 items-center font-semibold text-forest underline" href="/login">Log in to continue to checkout</Link>
             </p>
           ) : (
-            <p className="mt-5"><Link className="inline-flex min-h-11 items-center rounded-lg bg-forest px-5 font-semibold text-white" href="/checkout">Continue to checkout</Link></p>
+            <p className="mt-5"><Link className="button-primary w-full" href="/checkout">Continue to checkout</Link></p>
           )}
           </aside>
         </div>
@@ -131,7 +127,7 @@ export function CartView({ actor }: { actor: "GUEST" | "MEMBER" }) {
         </p>
       )}
       {error && (
-        <p className="mt-4 rounded-lg bg-[#fff0e9] p-3 text-[#9f3327]" role="alert">
+        <p className="notice-error mt-4" role="alert">
           {error}
         </p>
       )}
