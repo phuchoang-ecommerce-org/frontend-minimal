@@ -66,12 +66,12 @@ export function LoginForm({ devAccounts = [] }: { devAccounts?: readonly DevAcco
   }
   return (
     <div className="grid gap-5">
-    {devAccounts.length > 0 && <section className="rounded-2xl border border-clay bg-[#fff4e9] p-5 sm:p-6" aria-labelledby="dev-accounts-heading">
+    {devAccounts.length > 0 && <section className="notice" aria-labelledby="dev-accounts-heading">
       <h2 id="dev-accounts-heading" className="text-xl font-semibold text-forest">Development accounts</h2>
       <p className="mt-1 text-sm text-sage">Choose a seeded account to fill the form and sign in locally.</p>
       <div className="mt-4 flex flex-wrap gap-2">{devAccounts.map((account) => <Button key={account.role} htmlType="button" className="min-h-11" disabled={busy} onClick={() => void loginAs(account)}>Log in as {account.role.charAt(0) + account.role.slice(1).toLowerCase()}</Button>)}</div>
     </section>}
-    <form className="grid gap-5 rounded-2xl border border-line bg-paper p-6 shadow-sm sm:p-8" onSubmit={submit}>
+    <form className="grid gap-5 border-t border-line pt-6" onSubmit={submit}>
       <label className="grid gap-2 text-sm font-semibold">
         Login{" "}
         <Input
@@ -94,7 +94,7 @@ export function LoginForm({ devAccounts = [] }: { devAccounts?: readonly DevAcco
         Log in
       </Button>
       {error && (
-        <p className="rounded-lg bg-[#fff0e9] p-3 text-[#9f3327]" role="alert">
+        <p className="notice-error" role="alert">
           {error}
         </p>
       )}

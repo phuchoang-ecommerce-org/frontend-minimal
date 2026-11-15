@@ -9,12 +9,12 @@ export default function LoginPage() {
       ] as const)
     : [];
   return (
-    <main className="mx-auto max-w-xl px-5 py-12 sm:px-8">
-      <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-forest">Your account</p>
-      <h1 className="mb-8 text-4xl font-semibold tracking-tight">Log in</h1>
+    <main className="page-shell py-12 sm:py-14"><div className="max-w-xl">
+      <p className="eyebrow mb-2">Your account</p>
+      <h1 className="page-heading mb-10">Log in</h1>
       <Suspense fallback={<p>Loading login…</p>}>
         <LoginForm devAccounts={devAccounts} />
       </Suspense>
-    </main>
+    </div></main>
   );
 }
