@@ -69,20 +69,11 @@ export function CartView({ actor }: { actor: "GUEST" | "MEMBER" }) {
     }
   }
   return (
-    <div className="rounded-2xl border border-line bg-paper p-5 shadow-sm sm:p-8">
+    <div>
       {rejected.length > 0 && (
         <div className="mb-5 rounded-xl border border-clay bg-[#fff4e9] p-4" role="status">
           <strong>Some Guest items could not be merged:</strong>
-          <ul>
-            {rejected.map((line) => (
-              <li key={line.variantId}>
-                {line.variantId}:{" "}
-                {line.code === "QUANTITY_EXCEEDED"
-                  ? "quantity exceeds availability"
-                  : "item unavailable"}
-              </li>
-            ))}
-          </ul>
+          <p>{rejected.length} item{rejected.length === 1 ? "" : "s"} could not be added. Review your cart and try adding them again if available.</p>
         </div>
       )}
       {isLoading ? (
@@ -92,12 +83,13 @@ export function CartView({ actor }: { actor: "GUEST" | "MEMBER" }) {
           Cart unavailable. <Button onClick={() => refetch()}>Retry</Button>
         </p>
       ) : cart.lines.length ? (
-        <>
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
+          <section aria-label="Cart items" className="rounded-2xl border border-line bg-paper p-5 shadow-sm sm:p-8">
           {cart.lines.map((line) => (
             <div className="flex flex-col gap-4 border-b border-line py-5 sm:flex-row sm:items-center sm:justify-between" key={line.variantId}>
               <div className="min-w-0">
-                <strong className="break-all">Variant {line.variantId}</strong>
-                <p className="mt-1 text-sm text-sage">${line.unitPriceUsd} each</p>
+                <strong>{line.productName}</strong>
+                <p className="mt-1 text-sm text-sage">{line.variantLabel} · ${line.unitPriceUsd} each</p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <label>
@@ -120,15 +112,19 @@ export function CartView({ actor }: { actor: "GUEST" | "MEMBER" }) {
               </div>
             </div>
           ))}
-          <h2 className="mt-6 text-2xl font-semibold text-forest">Total: ${cart.totalUsd}</h2>
+          </section>
+          <aside aria-label="Cart summary" className="h-fit rounded-2xl border border-line bg-paper p-5 shadow-sm sm:p-8">
+          <h2 className="text-xl font-semibold">Order summary</h2>
+          <p className="mt-5 flex justify-between gap-3 border-t border-line pt-5 text-lg font-semibold text-forest"><span>Total</span><span>${cart.totalUsd}</span></p>
           {actor === "GUEST" ? (
             <p>
-              <Link href="/login">Log in to continue to checkout</Link>
+              <Link className="mt-5 inline-flex min-h-11 items-center font-semibold text-forest underline" href="/login">Log in to continue to checkout</Link>
             </p>
           ) : (
             <p className="mt-5"><Link className="inline-flex min-h-11 items-center rounded-lg bg-forest px-5 font-semibold text-white" href="/checkout">Continue to checkout</Link></p>
           )}
-        </>
+          </aside>
+        </div>
       ) : (
         <p className="py-6 text-sage">
           Your cart is empty. <Link className="font-semibold text-forest underline" href="/products">Browse products</Link>

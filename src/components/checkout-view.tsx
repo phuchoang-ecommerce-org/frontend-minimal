@@ -178,19 +178,14 @@ export function CheckoutView({ memberId }: { memberId: string }) {
           </p>
         ) : (
           <>
-            <p className="mt-4 text-sage">
-              {cart.data?.lines.length ?? 0} items · Cart version{" "}
-              {cart.data?.version}
-            </p>
+            <p className="mt-4 text-sage">{cart.data?.lines.length ?? 0} items</p>
             <ul className="mt-4 divide-y divide-line">
               {cart.data?.lines.map((line) => (
                 <li
                   key={line.variantId}
                   className="flex justify-between gap-3 py-3"
                 >
-                  <span className="break-all">
-                    Variant {line.variantId} × {line.quantity}
-                  </span>
+                  <span>{line.productName} · {line.variantLabel} × {line.quantity}</span>
                   <span>${line.unitPriceUsd}</span>
                 </li>
               ))}
