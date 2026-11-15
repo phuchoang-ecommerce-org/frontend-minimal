@@ -13,11 +13,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen antialiased">
+      <body className="flex min-h-screen flex-col antialiased">
         <Providers>
           <Header />
           {children}
-          <footer className="border-t border-line bg-paper px-5 py-8 text-center text-sm text-sage">
+          <footer className="mt-auto border-t border-line bg-paper px-5 py-8 text-center text-sm text-sage">
             Market · Independent finds, delivered with care
           </footer>
         </Providers>
