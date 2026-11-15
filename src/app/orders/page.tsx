@@ -6,8 +6,8 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
   const cursor = typeof params.cursor === "string" ? params.cursor : "";
   const back = Array.isArray(params.back) ? params.back : typeof params.back === "string" ? [params.back] : [];
   return (
-    <main className="mx-auto max-w-5xl px-5 py-12 sm:px-8">
-      <h1 className="mb-8 text-4xl font-semibold">Your orders</h1>
+    <main className="page-shell py-12 sm:py-14">
+      <h1 className="page-heading mb-10">Your orders</h1>
       {session?.account.role === "MEMBER" ? (
         <OrdersList cursor={cursor} back={back} />
       ) : (

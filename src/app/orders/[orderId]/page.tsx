@@ -8,8 +8,8 @@ export default async function OrderPage({
   const session = await getSession();
   const { orderId } = await params;
   return (
-    <main className="mx-auto max-w-6xl px-5 py-12 sm:px-8">
-      <h1 className="mb-8 text-4xl font-semibold">Order details</h1>
+    <main className="page-shell py-12 sm:py-14">
+      <h1 className="page-heading mb-10">Order details</h1>
       {session?.account.role === "MEMBER" ? (
         <OrderDetail id={orderId} />
       ) : (

@@ -6,8 +6,9 @@ export default async function SellerOrdersPage({ searchParams }: { searchParams:
   const cursor = typeof params.cursor === "string" ? params.cursor : "";
   const back = Array.isArray(params.back) ? params.back : typeof params.back === "string" ? [params.back] : [];
   return (
-    <main className="mx-auto max-w-5xl px-5 py-12 sm:px-8">
-      <h1 className="mb-8 text-4xl font-semibold">Seller orders</h1>
+    <main className="page-shell py-12 sm:py-14">
+      <p className="eyebrow mb-2">Order management</p>
+      <h1 className="page-heading mb-10">Seller orders</h1>
       {session?.account.role === "SELLER" ? (
         <SellerOrders cursor={cursor} back={back} />
       ) : (
