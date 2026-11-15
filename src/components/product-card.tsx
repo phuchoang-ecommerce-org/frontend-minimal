@@ -28,7 +28,6 @@ export function ProductCard({ product }: { product: Product }) {
       </div>
       <div className="space-y-2 p-5">
         <h2 className="line-clamp-2 text-lg font-semibold leading-snug">{product.name}</h2>
-        <p className="text-xs text-sage">Seller {product.sellerId.slice(0, 8)}</p>
         <strong className="block text-lg text-forest">
           {product.variants.length
             ? `$${product.variants[0].priceUsd}`
