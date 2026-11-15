@@ -12,6 +12,8 @@ You can find backend project in [backend](../backend/)
 
 You can find document of this project in [document](../docs-minimal/)
 
+You should prefer using `pnpm` for project management.
+
 <!-- BEGIN:nextjs-agent-feedback -->
 
 ## Report Next.js feedback
