@@ -1,8 +1,6 @@
-"use client";
-/* eslint-disable @next/next/no-img-element -- LINK images must load directly and uploaded bytes must bypass image optimization. */
 import Link from "next/link";
-import { useState } from "react";
 import type { Product } from "@/lib/types";
+import { ProductImage as ImageFallback } from "./product-image";
 export function ProductCard({ product }: { product: Product }) {
   return (
     <Link className="group block min-w-0" href={`/products/${product.id}`}>
@@ -24,26 +22,8 @@ export function ProductCard({ product }: { product: Product }) {
   );
 }
 export function ProductImage({ product }: { product: Product }) {
-  const [failed, setFailed] = useState(false);
-  const image = product.images.find((i) => i.primary) ?? product.images[0];
-  const src =
-    image?.mode === "LINK"
-      ? image.url
-      : image?.mode === "UPLOAD"
-        ? `/api/image?path=${encodeURIComponent(image.contentPath)}`
-        : null;
-  return (
-      <div className="flex aspect-[4/5] items-center justify-center overflow-hidden rounded-md bg-[var(--surface-muted)] text-sm text-sage">
-        {src && !failed ? (
-          <img
-            src={src}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.025]"
-            alt={image?.altText || product.name}
-            onError={() => setFailed(true)}
-          />
-        ) : (
-          <span aria-label="No product image">No image</span>
-        )}
-      </div>
-  );
+  const image = product.images.find((item) => item.primary) ?? product.images[0];
+  const src = image?.mode === "LINK" ? image.url : image?.mode === "UPLOAD"
+    ? `/api/image?path=${encodeURIComponent(image.contentPath)}` : null;
+  return <ImageFallback src={src} alt={image?.altText || product.name} />;
 }
