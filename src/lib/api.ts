@@ -15,6 +15,7 @@ export async function api(
   path: string,
   init: RequestInit = {},
   token?: string,
+  clearUnauthorized = true,
 ): Promise<Response> {
   const headers = new Headers(init.headers);
   if (token) headers.set("Authorization", `Bearer ${token}`);
@@ -30,7 +31,7 @@ export async function api(
     } catch {
       /* backend can be unavailable */
     }
-    if (response.status === 401 && token) await clearExpiredSession();
+    if (response.status === 401 && token && clearUnauthorized) await clearExpiredSession();
     throw new ApiError(response.status, problem);
   }
   return response;
