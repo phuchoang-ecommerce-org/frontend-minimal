@@ -2,12 +2,9 @@ import Link from "next/link";
 import { api } from "@/lib/api";
 import type { Page, Product } from "@/lib/types";
 import { ProductCard } from "@/components/product-card";
+import { Suspense } from "react";
 type Category = { id: string; name: string };
-export default async function Home() {
-  const [products, categories] = await Promise.allSettled([
-    api("/products?limit=8").then((r) => r.json() as Promise<Page<Product>>),
-    api("/categories?limit=8").then((r) => r.json() as Promise<Page<Category>>),
-  ]);
+export default function Home() {
   return (
     <main className="page-shell pb-20 pt-8 sm:pt-12">
       <section className="mb-16 grid items-end gap-8 border-b border-line pb-14 md:grid-cols-[minmax(0,1.3fr)_minmax(15rem,.7fr)] md:gap-12">
@@ -23,10 +20,26 @@ export default async function Home() {
       </section>
       <section className="mb-16">
         <h2 className="section-heading mb-5">Browse by category</h2>
-        {categories.status === "fulfilled" ? (
+        <Suspense fallback={<p>Loading categories…</p>}><Categories /></Suspense>
+      </section>
+      <section className="mb-10">
+        <div className="mb-6 flex items-end justify-between gap-4">
+          <h2 className="section-heading">Explore products</h2>
+          <Link className="font-semibold text-forest underline underline-offset-4" href="/products">View all</Link>
+        </div>
+        <Suspense fallback={<p>Loading products…</p>}><FeaturedProducts /></Suspense>
+      </section>
+    </main>
+  );
+}
+
+async function Categories() {
+  const categories = await api("/categories?limit=8").then((response) => response.json() as Promise<Page<Category>>).catch(() => null);
+  if (!categories) return <p>Categories are unavailable right now.</p>;
+  return (
           <div className="flex flex-wrap gap-x-6 gap-y-2 border-y border-line py-3">
-            {categories.value.items.length ? (
-              categories.value.items.map((category) => (
+            {categories.items.length ? (
+              categories.items.map((category) => (
                 <Link
                   key={category.id}
                   className="inline-flex min-h-11 items-center text-sm font-semibold text-ink hover:text-forest hover:underline hover:underline-offset-4"
@@ -39,29 +52,19 @@ export default async function Home() {
               <p>No categories yet.</p>
             )}
           </div>
-        ) : (
-          <p>Categories are unavailable right now.</p>
-        )}
-      </section>
-      <section className="mb-10">
-        <div className="mb-6 flex items-end justify-between gap-4">
-          <h2 className="section-heading">Explore products</h2>
-          <Link className="font-semibold text-forest underline underline-offset-4" href="/products">View all</Link>
-        </div>
-        {products.status === "fulfilled" ? (
-          products.value.items.length ? (
+  );
+}
+
+async function FeaturedProducts() {
+  const products = await api("/products?limit=8").then((response) => response.json() as Promise<Page<Product>>).catch(() => null);
+  if (!products) return <p>Products are unavailable right now. Refresh to retry.</p>;
+  return products.items.length ? (
             <div className="grid grid-cols-2 gap-x-4 gap-y-9 sm:gap-x-6 lg:grid-cols-4">
-              {products.value.items.map((product) => (
+              {products.items.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
           ) : (
             <p>No products are available yet.</p>
-          )
-        ) : (
-          <p>Products are unavailable right now. Refresh to retry.</p>
-        )}
-      </section>
-    </main>
-  );
+          );
 }
